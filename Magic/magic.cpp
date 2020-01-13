@@ -4,7 +4,18 @@
 using namespace cv;
 using namespace std;
 
-double dist(const Vec3b& a, const Vec3b& b) {
+namespace IMAGIC {
+  double dist(const Vec3b& a, const Vec3b& b);
+  vector<Vec3b> get_keys(const Mat& im);
+  void  remove_treshold(Mat& im, int rude);
+  Mat  get_mask(const Mat im, const vector<Vec3b>& keys, int sensivity);
+  void solve(Mat& im, Mat& bg, const Mat& mask0, const Mat& mask1);
+  void equalize(Mat& im);
+  void fit(const Mat& a, Mat& b);
+  Mat  ChromaKey(int quality, Mat im, Mat bg, int sensivity);
+}
+
+double IMAGIC::dist(const Vec3b& a, const Vec3b& b) {
   return sqrt(
     (a[0] - b[0]) * (a[0] - b[0]) +
     (a[1] - b[1]) * (a[1] - b[1]) +
@@ -12,7 +23,7 @@ double dist(const Vec3b& a, const Vec3b& b) {
   );
 }
 
-vector<Vec3b> get_keys(const Mat& im) {
+vector<Vec3b> IMAGIC::get_keys(const Mat& im) {
   int n = im.rows;
   int m = im.cols;
   return {
@@ -23,22 +34,21 @@ vector<Vec3b> get_keys(const Mat& im) {
   };
 }
 
-Mat remove_treshold(Mat im, int rude) {
+void IMAGIC::remove_treshold(Mat& im, int rude) {
 	int lowThreshold = 100;
 	int ratio = 3;
 	int kernelSize = 3;
 	
-	Mat srcGray, cannyEdges, blurred;
+	Mat cannyEdges, blurred;
   
-  if (rude < 5) {
+  if (rude < 3) {
 	  erode(im, im, getStructuringElement(MORPH_RECT, Size(3, 3)));
   }
-  srcGray = im.clone();
 	
-	blur(srcGray, cannyEdges, Size(3, 3));
+	blur(im, cannyEdges, Size(3, 3));
 	Canny(cannyEdges, cannyEdges, lowThreshold, lowThreshold * ratio, kernelSize);
 	
-	int dilation_size = rude;// ... = 5
+	int dilation_size = rude;
 	Mat element = getStructuringElement(MORPH_CROSS,
 	Size(2 * dilation_size + 1, 2 * dilation_size + 1),
 	Point(dilation_size, dilation_size));
@@ -47,32 +57,25 @@ Mat remove_treshold(Mat im, int rude) {
 	im.copyTo(blurred);
 	blur(blurred, blurred, Size(3, 3));
 	blurred.copyTo(im, cannyEdges);
-  cerr << cannyEdges.type() << endl;
-  namedWindow("kek");
-  imshow("kek", cannyEdges);
-  waitKey(0);
-  destroyWindow("kek");
-  
-  return im;
 }
 
-Mat get_mask(const Mat im, const vector<Vec3b>& keys) {
+Mat IMAGIC::get_mask(const Mat im, const vector<Vec3b>& keys, int sensivity) {
   double dst = 0;
   for (auto key1 : keys) {
     for (auto key2 : keys) {
       dst = max(dst, dist(key1, key2));
     }
   }
-  Mat res(im.size(), CV_8UC1);
-  for (int i = 0; i < im.rows; ++i) {
-    for (int j = 0; j < im.cols; ++j) {
-      res.at<unsigned char>(i, j) = 255;
-    }
-  }
+  Mat res(im.size(), CV_8UC1, Scalar::all(255));
   for (auto key : keys) {
-    for (int i = 0; i < im.rows; ++i) {
+    #pragma omp parallel for num_threads(8)
+		for (int i = 0; i < im.rows; ++i) {
       for (int j = 0; j < im.cols; ++j) {
-        if (dist(im.at<Vec3b>(i, j), key) < max(64, int(dst))) {
+        if (sensivity == -1) {
+          if (dist(im.at<Vec3b>(i, j), key) < max(64, int(dst))) {
+            res.at<unsigned char>(i, j) = 0;
+          }
+        } else if (dist(im.at<Vec3b>(i, j), key) < sensivity) {
           res.at<unsigned char>(i, j) = 0;
         }
       }
@@ -81,7 +84,7 @@ Mat get_mask(const Mat im, const vector<Vec3b>& keys) {
   return res;
 }
 
-Mat solve(Mat im, Mat bg, Mat mask0, Mat mask1) {
+void IMAGIC::solve(Mat& im, Mat& bg, const Mat& mask0, const Mat& mask1) {
   im.convertTo(im, CV_32FC3);
   bg.convertTo(bg, CV_32FC3);
   
@@ -95,65 +98,25 @@ Mat solve(Mat im, Mat bg, Mat mask0, Mat mask1) {
   add(im, bg, res);
 
   res.convertTo(res, CV_8UC3, 1);
-  return res;
-
-  //  vector<Mat> msk = {mask0, mask1, mask0};
-  //  vector<Mat> res(3), v, u;
-  //  split(im, v);
-  //  split(bg, u);
- 
-  //  for (int i = 0; i < 3; ++i) {
-  //    multiply(msk[i], CV_32FC1, 1.0 / 255)
-  //  }
-  //  v[3].copyTo(res[3], mask0);
-  //  res[0] = v[0].clone();
-  //  res[1] = v[1].clone();
-  //  res[2] = v[2].clone();
-
-  //v[0].copyTo(res[0], msk[0]);
-  //subtract(cv::Scalar::all(255), msk[0], msk[0]);
-  //u[0].copyTo(res[0], msk[0]);
-  //subtract(cv::Scalar::all(255), msk[0], msk[0]);
-
-  //v[1].copyTo(res[1], msk[1]);
-  //subtract(cv::Scalar::all(255), msk[1], msk[1]);
-  //u[1].copyTo(res[1], msk[1]);
-  //subtract(cv::Scalar::all(255), msk[1], msk[1]);
-  //
-  //v[2].copyTo(res[2], msk[0]);
-  //subtract(cv::Scalar::all(255), msk[0], msk[0]);
-  //u[2].copyTo(res[2], msk[0]);
-  //subtract(cv::Scalar::all(255), msk[0], msk[0]);
-  
-  //  merge(res, im);
-  //  add(im, bg, im);
-  
-  //  return im;
+  swap(res, im);
 }
 
-void equalize(Mat& im) {
-  {
- 		Mat hist_equalized_image;
-    cvtColor(im, hist_equalized_image, COLOR_BGR2YCrCb);
+void IMAGIC::equalize(Mat& im) {
+ 	Mat hist_equalized_image;
+  cvtColor(im, hist_equalized_image, COLOR_BGR2YCrCb);
 
-    //Split the image into 3 channels; Y, Cr and Cb channels respectively and store it in a std::vector
-    vector<Mat> vec_channels;
-    split(hist_equalized_image, vec_channels); 
+  vector<Mat> vec_channels;
+  split(hist_equalized_image, vec_channels); 
 
-    //Equalize the histogram of only the Y channel 
-    equalizeHist(vec_channels[0], vec_channels[0]);
+  equalizeHist(vec_channels[0], vec_channels[0]);
 
-    //Merge 3 channels in the vector to form the color image in YCrCB color space.
-    merge(vec_channels, hist_equalized_image); 
-        
-    //Convert the histogram equalized image from YCrCb to BGR color space again
-    cvtColor(hist_equalized_image, hist_equalized_image, COLOR_YCrCb2BGR);
-		swap(im, hist_equalized_image);  
-	}
-  //im.convertTo(im, -1, 4, -128);
+  merge(vec_channels, hist_equalized_image); 
+      
+  cvtColor(hist_equalized_image, hist_equalized_image, COLOR_YCrCb2BGR);
+	swap(im, hist_equalized_image);
 }
 
-void fit(const Mat& a, Mat& b) {
+void IMAGIC::fit(const Mat& a, Mat& b) {
   double aa = double(a.rows) / a.cols;
   double bb = double(b.rows) / b.cols;
   
@@ -163,8 +126,17 @@ void fit(const Mat& a, Mat& b) {
   } else {
     scale = double(a.cols) / b.cols;
   }
+	/*
+	int startY = (-a.rows / 2) / scale + b.rows / 2,
+			startX = (-a.cols / 2) / scale + b.cols / 2,
+			width  = a.cols,
+			height = a.rows;
 
+	Mat ROI(b, Rect(startX,startY,width,height));
+	ROI.copyTo(b);
+	*/
   Mat res = Mat::zeros(a.size(), a.type());
+	#pragma omp parallel for num_threads(8)
   for (int i = 0; i < res.rows; ++i) {
     for (int j = 0; j < res.cols; ++j) {
       res.at<Vec3b>(i, j) =
@@ -174,7 +146,36 @@ void fit(const Mat& a, Mat& b) {
   swap(b, res);
 }
 
-int main(int argc, char* argv[]) {
+Mat IMAGIC::ChromaKey(int quality, Mat im, Mat bg, int sensivity = -1) {// sensivity = -1 means maximum of (64) and (corner dif)
+  if (im.size() != bg.size()) {
+    fit(im, bg);
+  }
+
+  Mat for_mask = im.clone();
+  //equalize(for_mask);
+	if (quality == 1) {
+  	adaptiveBilateralFilter(im, for_mask, Size(3, 3), 150); // Size(5, 5), 150
+  }
+  vector<Vec3b> keys = get_keys(for_mask);
+	Mat mask = get_mask(for_mask, keys, sensivity);
+
+	if (quality == 1) {
+		Mat mask1 = mask.clone();
+		#pragma omp parallel sections	
+			#pragma omp section
+				remove_treshold(mask, 3); // 5
+			#pragma omp section
+				remove_treshold(mask1, 1); // 2
+  	
+		solve(im, bg, mask, mask1);
+	} else {
+  	solve(im, bg, mask, mask);
+	}
+	return im;
+}
+
+int main() {
+  /*
   string imname;
   getline(cin, imname);
   Mat im = imread("TestData/"+imname);
@@ -182,36 +183,46 @@ int main(int argc, char* argv[]) {
   string bgname;
   getline(cin, bgname);
   Mat bg = imread("TestData/"+bgname);
-  fit(im, bg);
-  
-  /*
-  namedWindow("kek");
-  imshow("kek", im);
-  waitKey(0);
-  destroyWindow("kek");
 
-  namedWindow("kek");
-  imshow("kek", bg);
-  waitKey(0);
-  destroyWindow("kek");
+  Mat res = IMAGIC::ChromaKey(im, bg);
+  
+  imwrite("TestData/res.jpg", res);
   */
 
-  Mat for_mask = im.clone();
-  //equalize(for_mask);
-  adaptiveBilateralFilter(im, for_mask, Size(5, 5), 150);
+  VideoCapture cap("TestData/v2.mp4");
+  Mat bg = imread("TestData/bg2.jpg");
   
-  vector<Vec3b> keys = get_keys(for_mask);
-	Mat mask = get_mask(for_mask, keys);
-  
-  Mat res = solve(im, bg, remove_treshold(mask, 5),
+  //String vid0 = "Original Video";
+  String vid1 = "ChromaKeyVideo";
+  //namedWindow(vid0, WINDOW_NORMAL);
+  namedWindow(vid1, WINDOW_NORMAL);
+  while (true) {
+    Mat frame;
+		bool bSuccess;
+		for (int i = 0; i < 1; ++i) {
+    	bSuccess = cap.read(frame); 
+    	if (bSuccess == false) {
+      	break;
+    	}
+		}
+    if (bSuccess == false) {
+      cout << "Found the end of the video" << endl;
+      break;
+    }
+		
+    if (frame.size() != bg.size()) {
+      IMAGIC::fit(frame, bg);
+    }
 
-                          remove_treshold(mask, 2));
-  waitKey(0);
-  destroyWindow("kek");
-  
-  namedWindow("kek");
-  imwrite("TestData/res.jpg", res);
-  imshow("kek", res);
-  waitKey(0);
-  destroyWindow("kek");
+    //imshow(vid0, frame);
+		frame = IMAGIC::ChromaKey(-1, frame, bg);	
+		imshow(vid1, frame);
+		if (waitKey(5) == 27) {
+      cout << 
+				"Esc key is pressed by the user. Stopping the video"
+			<< endl;
+      break;
+    }
+	}
+	destroyAllWindows();
 }

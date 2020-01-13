@@ -1,3 +1,3 @@
 #!/bin/bash
 
-g++ `pkg-config --cflags opencv` magic.cpp `pkg-config --libs opencv` --std=c++17  -o bin
+g++ `pkg-config --cflags opencv` magic.cpp `pkg-config --libs opencv` --std=c++17  -o bin -O3 -fno-default-inline -fno-defer-pop -fforward-propagate -fomit-frame-pointer -fno-inline -finline-functions-called-once -fearly-inlining -fkeep-inline-functions -fkeep-static-consts -fmerge-constants -fmerge-all-constants -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-branch-count-reg -fno-function-cse -fno-zero-initialized-in-bss -fmudflap -fmudflapth -fmudflapir -fthread-jumps 
