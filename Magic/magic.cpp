@@ -29,21 +29,23 @@ Mat remove_treshold(Mat im, int rude) {
 	int kernelSize = 3;
 	
 	Mat srcGray, cannyEdges, blurred;
-
-	erode(im, im, getStructuringElement(MORPH_RECT, Size(rude, rude)));
-	srcGray = im.clone();
+  
+  if (rude < 5) {
+	  erode(im, im, getStructuringElement(MORPH_RECT, Size(3, 3)));
+  }
+  srcGray = im.clone();
 	
-	blur(srcGray, cannyEdges, Size(rude - 2, rude - 2));
+	blur(srcGray, cannyEdges, Size(3, 3));
 	Canny(cannyEdges, cannyEdges, lowThreshold, lowThreshold * ratio, kernelSize);
 	
-	int dilation_size = 5;
+	int dilation_size = rude;// ... = 5
 	Mat element = getStructuringElement(MORPH_CROSS,
 	Size(2 * dilation_size + 1, 2 * dilation_size + 1),
 	Point(dilation_size, dilation_size));
 	
 	dilate(cannyEdges, cannyEdges, element);
 	im.copyTo(blurred);
-	blur(blurred, blurred, Size(rude - 1, rude - 1));
+	blur(blurred, blurred, Size(3, 3));
 	blurred.copyTo(im, cannyEdges);
   cerr << cannyEdges.type() << endl;
   namedWindow("kek");
@@ -70,7 +72,7 @@ Mat get_mask(const Mat im, const vector<Vec3b>& keys) {
   for (auto key : keys) {
     for (int i = 0; i < im.rows; ++i) {
       for (int j = 0; j < im.cols; ++j) {
-        if (dist(im.at<Vec3b>(i, j), key) < max(100, int(dst))) {
+        if (dist(im.at<Vec3b>(i, j), key) < max(64, int(dst))) {
           res.at<unsigned char>(i, j) = 0;
         }
       }
@@ -80,28 +82,53 @@ Mat get_mask(const Mat im, const vector<Vec3b>& keys) {
 }
 
 Mat solve(Mat im, Mat bg, Mat mask0, Mat mask1) {
-  vector<Mat> msk = {mask0, mask1, mask0};
-  vector<Mat> res(3), v, u;
-  split(im, v);
-  split(bg, u);
+  im.convertTo(im, CV_32FC3);
+  bg.convertTo(bg, CV_32FC3);
   
-  v[0].copyTo(res[0], msk[0]);
-  subtract(cv::Scalar::all(255), msk[0], msk[0]);
-  u[0].copyTo(res[0], msk[0]);
-  subtract(cv::Scalar::all(255), msk[0], msk[0]);
+  Mat alpha;
+  merge({mask0, mask1, mask0}, alpha);
+  alpha.convertTo(alpha, CV_32FC3, 1.0/255);
 
-  v[1].copyTo(res[1], msk[1]);
-  subtract(cv::Scalar::all(255), msk[1], msk[1]);
-  u[1].copyTo(res[1], msk[1]);
-  subtract(cv::Scalar::all(255), msk[1], msk[1]);
+  Mat res = Mat::zeros(im.size(), im.type());
+  multiply(alpha, im, im); 
+  multiply(Scalar::all(1.0)-alpha, bg, bg); 
+  add(im, bg, res);
+
+  res.convertTo(res, CV_8UC3, 1);
+  return res;
+
+  //  vector<Mat> msk = {mask0, mask1, mask0};
+  //  vector<Mat> res(3), v, u;
+  //  split(im, v);
+  //  split(bg, u);
+ 
+  //  for (int i = 0; i < 3; ++i) {
+  //    multiply(msk[i], CV_32FC1, 1.0 / 255)
+  //  }
+  //  v[3].copyTo(res[3], mask0);
+  //  res[0] = v[0].clone();
+  //  res[1] = v[1].clone();
+  //  res[2] = v[2].clone();
+
+  //v[0].copyTo(res[0], msk[0]);
+  //subtract(cv::Scalar::all(255), msk[0], msk[0]);
+  //u[0].copyTo(res[0], msk[0]);
+  //subtract(cv::Scalar::all(255), msk[0], msk[0]);
+
+  //v[1].copyTo(res[1], msk[1]);
+  //subtract(cv::Scalar::all(255), msk[1], msk[1]);
+  //u[1].copyTo(res[1], msk[1]);
+  //subtract(cv::Scalar::all(255), msk[1], msk[1]);
+  //
+  //v[2].copyTo(res[2], msk[0]);
+  //subtract(cv::Scalar::all(255), msk[0], msk[0]);
+  //u[2].copyTo(res[2], msk[0]);
+  //subtract(cv::Scalar::all(255), msk[0], msk[0]);
   
-  v[2].copyTo(res[2], msk[0]);
-  subtract(cv::Scalar::all(255), msk[0], msk[0]);
-  u[2].copyTo(res[2], msk[0]);
-  subtract(cv::Scalar::all(255), msk[0], msk[0]);
+  //  merge(res, im);
+  //  add(im, bg, im);
   
-  merge(res, im);
-  return im;
+  //  return im;
 }
 
 void equalize(Mat& im) {
@@ -126,29 +153,25 @@ void equalize(Mat& im) {
   //im.convertTo(im, -1, 4, -128);
 }
 
-void fit(Mat& im, Mat& bg) {
-  double imr = double(im.rows) / im.cols;
-  double bgr = double(bg.rows) / bg.cols;
+void fit(const Mat& a, Mat& b) {
+  double aa = double(a.rows) / a.cols;
+  double bb = double(b.rows) / b.cols;
   
-  bool transposed = false;
-  if (imr < bgr) {
-    transpose(im, im);
-    transpose(bg, bg);
-    transposed = true;
-  }
-  
-  double imScale = double(im.rows) / bg.rows;
-  if (imScale >= 1) {
-    resize(bg, bg, im.size(), 1.0 / imScale, 1.0 /imScale);
+  double scale;
+  if (aa > bb) {
+    scale = double(a.rows) / b.rows;
   } else {
-    resize(im, im, im.size(), imScale, imScale);
-    resize(im, im, im.size(), 1.0, 1.0);
+    scale = double(a.cols) / b.cols;
   }
 
-  if (transposed) {
-    transpose(im, im);
-    transpose(bg, bg);
+  Mat res = Mat::zeros(a.size(), a.type());
+  for (int i = 0; i < res.rows; ++i) {
+    for (int j = 0; j < res.cols; ++j) {
+      res.at<Vec3b>(i, j) =
+        b.at<Vec3b>((i - a.rows / 2) / scale + b.rows / 2, (j - a.cols / 2) / scale + b.cols / 2);
+    }
   }
+  swap(b, res);
 }
 
 int main(int argc, char* argv[]) {
@@ -160,19 +183,34 @@ int main(int argc, char* argv[]) {
   getline(cin, bgname);
   Mat bg = imread("TestData/"+bgname);
   fit(im, bg);
+  
+  /*
+  namedWindow("kek");
+  imshow("kek", im);
+  waitKey(0);
+  destroyWindow("kek");
+
+  namedWindow("kek");
+  imshow("kek", bg);
+  waitKey(0);
+  destroyWindow("kek");
+  */
 
   Mat for_mask = im.clone();
-  equalize(for_mask);
+  //equalize(for_mask);
   adaptiveBilateralFilter(im, for_mask, Size(5, 5), 150);
   
   vector<Vec3b> keys = get_keys(for_mask);
 	Mat mask = get_mask(for_mask, keys);
   
   Mat res = solve(im, bg, remove_treshold(mask, 5),
-                          remove_treshold(mask, 7));
+
+                          remove_treshold(mask, 2));
+  waitKey(0);
+  destroyWindow("kek");
   
   namedWindow("kek");
-  imwrite("TestData/res.png", res);
+  imwrite("TestData/res.jpg", res);
   imshow("kek", res);
   waitKey(0);
   destroyWindow("kek");
