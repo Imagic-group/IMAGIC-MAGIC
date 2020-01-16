@@ -1,5 +1,6 @@
 #!/bin/bash
 
-./MagicTool/buildTool
-./MagicTool/build
+cd MagicTool
+./buildTool
+./build
 

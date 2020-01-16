@@ -12,6 +12,9 @@ int main() {
   string resname;
   getline(cin, resname);  
 
-	Mat res = IMAGIC::ChromaKey(+1, im, bg);
+  int sensivity;
+  cin >> sensivity;
+
+	Mat res = IMAGIC::ChromaKey(+1, im, bg, sensivity);
   imwrite(resname, res);
 }
