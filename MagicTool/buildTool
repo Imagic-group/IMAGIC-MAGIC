@@ -1,0 +1,5 @@
+#!/bin/bash
+
+g++ `pkg-config --cflags opencv` Code/MagicTool.cpp\
+    `pkg-config --libs opencv` --std=c++17 -c -O3\
+    -I Headers/
