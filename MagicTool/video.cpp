@@ -17,7 +17,7 @@ int main() {
 
   VideoCapture cap(0);//("MagicTool/TestData/v2.mp4");
   cap.set(CV_CAP_PROP_FRAME_HEIGHT, 800);
-  cap.set(CV_CAP_PROP_FRAME_WIDTH, 600);
+  cap.set(CV_CAP_PROP_FRAME_WIDTH, 1000);
   Mat bg = imread("MagicTool/TestData/bg.jpg");
   
   //String vid0 = "Original Video";

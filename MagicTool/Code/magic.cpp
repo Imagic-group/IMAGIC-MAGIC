@@ -58,8 +58,8 @@ Mat IMAGIC::get_mask(const Mat im, const vector<Vec3b>& keys, int sensivity) {
     Vec3b mn = keys[0], mx = keys[0];
     for (Vec3b key : keys) {
       for (int i = 0; i < 3; ++i) {
-        mn[i] = min(int(mn[i]), max(0, int(key[i]) - 64));
-        mx[i] = max(int(mx[i]), min(int(key[i]) + 64, 255));
+        mn[i] = min(int(mn[i]), max(0, int(key[i]) - 50));
+        mx[i] = max(int(mx[i]), min(int(key[i]) + 50, 255));
       }
     }
     Mat res, tmp(im.size(), CV_8UC1, Scalar::all(255));
