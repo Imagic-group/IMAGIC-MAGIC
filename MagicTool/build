@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 
 g++ `pkg-config --cflags opencv` photo.cpp MagicTool.o\
     `pkg-config --libs opencv` --std=c++17 -o ../photo -O3\
@@ -7,3 +7,5 @@ g++ `pkg-config --cflags opencv` photo.cpp MagicTool.o\
 g++ `pkg-config --cflags opencv` video.cpp MagicTool.o\
     `pkg-config --libs opencv` --std=c++17 -o ../video -O3\
     -I Headers/
+
+./buildTranslator

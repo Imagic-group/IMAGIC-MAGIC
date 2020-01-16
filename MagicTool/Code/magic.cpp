@@ -92,7 +92,7 @@ void IMAGIC::solve(Mat& im, Mat& bg, const Mat& mask0, const Mat& mask1) {
   bg.convertTo(bg, CV_32FC3);
   
   Mat alpha;
-  merge({mask0, mask1, mask0}, alpha);
+  merge(vector<Mat>{mask0, mask1, mask0}, alpha);
   alpha.convertTo(alpha, CV_32FC3, 1.0/255);
 
   Mat res = Mat::zeros(im.size(), im.type());
@@ -157,7 +157,8 @@ Mat IMAGIC::ChromaKey(int quality, Mat im, Mat bg, int sensivity) {// sensivity 
   Mat for_mask = im.clone();
   //equalize(for_mask);
 	if (quality == 1) {
-  	adaptiveBilateralFilter(im, for_mask, Size(3, 3), 150); // Size(5, 5), 150
+    bilateralFilter(im, for_mask, 3, 150, 150); // Size(5, 5), 150
+    //adaptiveBilateralFilter(im, for_mask, Size(3, 3), 150); // Size(5, 5), 150
   }
   vector<Vec3b> keys = get_keys(for_mask);
 	Mat mask = get_mask(for_mask, keys, sensivity);
