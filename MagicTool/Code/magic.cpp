@@ -49,7 +49,26 @@ Mat IMAGIC::get_mask(const Mat im, const vector<Vec3b>& keys, int sensivity) {
       dst = max(dst, dist(key1, key2));
     }
   }
-  Mat res(im.size(), CV_8UC1, Scalar::all(255));
+  //Mat res(im.size(), CV_8UC1, Scalar::all(255));
+  
+  //ADDED {  
+    if (sensivity == -1) {
+      sensivity = 64;
+    }
+    Vec3b mn = keys[0], mx = keys[0];
+    for (Vec3b key : keys) {
+      for (int i = 0; i < 3; ++i) {
+        mn[i] = min(int(mn[i]), max(0, int(key[i]) - 64));
+        mx[i] = max(int(mx[i]), min(int(key[i]) + 64, 255));
+      }
+    }
+    Mat res, tmp(im.size(), CV_8UC1, Scalar::all(255));
+    inRange(im, mn, mx, res);
+    tmp -= res;
+    return tmp;
+  //} ADDED
+  
+  /*
   for (auto key : keys) {
     #pragma omp parallel for num_threads(8)
 		for (int i = 0; i < im.rows; ++i) {
@@ -64,6 +83,7 @@ Mat IMAGIC::get_mask(const Mat im, const vector<Vec3b>& keys, int sensivity) {
       }
     }
   }
+  */
   return res;
 }
 
@@ -112,7 +132,7 @@ void IMAGIC::fit(const Mat& a, Mat& b) {
 	/*
 	int startY = (-a.rows / 2) / scale + b.rows / 2,
 			startX = (-a.cols / 2) / scale + b.cols / 2,
-			width  = a.cols,
+			width  = a.cols
 			height = a.rows;
 
 	Mat ROI(b, Rect(startX,startY,width,height));
@@ -146,9 +166,9 @@ Mat IMAGIC::ChromaKey(int quality, Mat im, Mat bg, int sensivity) {// sensivity 
 		Mat mask1 = mask.clone();
 		#pragma omp parallel sections	
 			#pragma omp section
-				remove_treshold(mask, 3); // 5
+				remove_treshold(mask, 5); // 5
 			#pragma omp section
-				remove_treshold(mask1, 1); // 2
+				remove_treshold(mask1, 3); // 2
   	
 		solve(im, bg, mask, mask1);
 	} else {
