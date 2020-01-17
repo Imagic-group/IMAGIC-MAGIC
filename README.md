@@ -5,6 +5,7 @@ First of all you need to run some commands in terminal (of course you have to be
 	cd InstallOpenCV
 	unzip opencv-4.2.0.zip
 	./runme.sh
+	cd ..
 ```
 Yeah!
 You've installed OpenCV for C++, congratulations!
