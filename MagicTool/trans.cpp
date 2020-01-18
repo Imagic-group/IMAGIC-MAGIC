@@ -10,10 +10,10 @@ int main() {
   std::string bg_path;
   std::getline(std::cin, bg_path);
   cv::Mat bg = cv::imread(bg_path);
-
-  std::string vid1 = "ChromaKeyVideo";
-  cv::namedWindow(vid1, CV_WINDOW_AUTOSIZE);
   
+  std::string translation_path;
+  std::getline(std::cin, translation_path);
+
   while (true) {
     cv::Mat frame;
 		bool ok = cap.read(frame); 
@@ -27,7 +27,6 @@ int main() {
     }
 
 		frame = IMAGIC::ChromaKey(-1, frame, bg);	
-    cv::imshow(vid1, frame);
-	}
-  cv::destroyAllWindows();
+    cv::imwrite(translation_path + std::to_string(std::rand()), frame);
+  }
 }

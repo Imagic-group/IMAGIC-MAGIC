@@ -1,10 +1,10 @@
 namespace IMAGIC {
-  double dist(const Vec3b& a, const Vec3b& b);
-  vector<Vec3b> get_keys(const Mat& im);
-  void  remove_treshold(Mat& im, int rude);
-  Mat  get_mask(const Mat im, const vector<Vec3b>& keys, int sensivity);
-  void solve(Mat& im, Mat& bg, const Mat& mask0, const Mat& mask1);
-  void equalize(Mat& im);
-  void fit(const Mat& a, Mat& b);
-  Mat  ChromaKey(int quality, Mat im, Mat bg, int sensivity = -1);
+  double dist(const cv::Vec3b& a, const cv::Vec3b& b);
+  std::vector<cv::Vec3b> get_keys(const cv::Mat& im);
+  void remove_treshold(cv::Mat& im, int rude);
+  cv::Mat get_mask(const cv::Mat im, const std::vector<cv::Vec3b>& keys, int sensivity);
+  void solve(cv::Mat& im, cv::Mat& bg, const cv::Mat& mask0, const cv::Mat& mask1);
+  void equalize(cv::Mat& im);
+  void fit(const cv::Mat& a, cv::Mat& b);
+  cv::Mat ChromaKey(int quality, cv::Mat im, cv::Mat bg, int sensivity = -1);
 }

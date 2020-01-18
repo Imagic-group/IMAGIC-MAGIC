@@ -1,0 +1,52 @@
+#!/bin/bash
+
+while [ -n "$1" ]
+do
+  case "$1" in
+    all)       echo -e "MagicTool is being built..." &&\
+            g++ `pkg-config --cflags opencv`\
+            MagicTool/Code/MagicTool.cpp\
+            `pkg-config --libs opencv` --std=c++17 -O3\
+            -I MagicTool/Headers/ -c\
+            && echo -e "MagicTool is ready\n\nphoto.cpp is being built..." &&\
+            g++ `pkg-config --cflags opencv` MagicTool/photo.cpp MagicTool.o\
+            `pkg-config --libs opencv` --std=c++17 -o photo -O3\
+            -I MagicTool/Headers/\
+            && echo -e "photo is ready\n\nvideo.cpp is being built..." &&\
+            g++ `pkg-config --cflags opencv`\
+            MagicTool/video.cpp MagicTool.o\
+            `pkg-config --libs opencv` --std=c++17 -o video -O3\
+            -I MagicTool/Headers/\
+            && echo -e "video is ready\n\ntrans.cpp is being built..." &&\
+            g++ `pkg-config --cflags opencv`\
+            MagicTool/trans.cpp MagicTool.o\
+            `pkg-config --libs opencv` --std=c++17 -o trans -O3\
+            -I MagicTool/Headers/\
+            && echo -e "trans is ready\n";;
+    magic)     echo -e "MagicTool is being built..." &&\
+            g++ `pkg-config --cflags opencv`\
+            MagicTool/Code/MagicTool.cpp\
+            `pkg-config --libs opencv` --std=c++17 -O3\
+            -I MagicTool/Headers/ -c\
+            && echo -e "MagicTool is ready\n";;
+    photo)     echo -e "photo.cpp is being built..." &&\
+            g++ `pkg-config --cflags opencv` MagicTool/photo.cpp MagicTool.o\
+            `pkg-config --libs opencv` --std=c++17 -o photo -O3\
+            -I MagicTool/Headers/\
+            && echo -e "photo is ready\n";;
+    video)     echo -e "video.cpp is being built..." &&\
+            g++ `pkg-config --cflags opencv`\
+            MagicTool/video.cpp MagicTool.o\
+            `pkg-config --libs opencv` --std=c++17 -o video -O3\
+            -I MagicTool/Headers/\
+            && echo -e "video is ready\n";;
+    trans)     echo -e "trans.cpp is being built..." &&\
+            g++ `pkg-config --cflags opencv`\
+            MagicTool/trans.cpp MagicTool.o\
+            `pkg-config --libs opencv` --std=c++17 -o trans -O3\
+            -I MagicTool/Headers/\
+            && echo -e "trans is ready\n";;
+    *);;
+  esac
+  shift
+done

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-g++ `pkg-config --cflags opencv` translator.cpp MagicTool.o\
-    `pkg-config --libs opencv` --std=c++17 -o ../translator -O3\
-    -I Headers/

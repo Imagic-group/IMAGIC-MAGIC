@@ -1,20 +1,22 @@
 #include "MagicTool.h"
+#include <iostream>
+#include <string>
 
 int main() {
-  string imname;
-  getline(cin, imname);
-  Mat im = imread(imname);
+  std::string imname;
+  std::getline(std::cin, imname);
+  cv::Mat im = cv::imread(imname);
   
-  string bgname;
-  getline(cin, bgname);
-  Mat bg = imread(bgname);
+  std::string bgname;
+  std::getline(std::cin, bgname);
+  cv::Mat bg = cv::imread(bgname);
 	
-  string resname;
-  getline(cin, resname);  
+  std::string resname;
+  std::getline(std::cin, resname);  
 
   int sensivity;
-  cin >> sensivity;
+  std::cin >> sensivity;
 
-	Mat res = IMAGIC::ChromaKey(+1, im, bg, sensivity);
-  imwrite(resname, res);
+  cv::Mat res = IMAGIC::ChromaKey(+1, im, bg, sensivity);
+  cv::imwrite(resname, res);
 }
