@@ -16,24 +16,24 @@ int main() {
   
   while (true) {
     cv::Mat frame;
-		bool ok = cap.read(frame); 
+    bool ok = cap.read(frame); 
     if (ok == false) {
       std::cout << "Found the end of the video" << std::endl;
       break;
     }
-		
+    
     if (frame.size() != bg.size()) {
       IMAGIC::fit(frame, bg);
     }
 
-		frame = IMAGIC::ChromaKey(-1, frame, bg);	
+    frame = IMAGIC::ChromaKey(-1, frame, bg);  
     cv::imshow(vid1, frame);
     if (cv::waitKey(5) == 27) {
       std::cout << 
-				"Esc key is pressed by the user. Stopping the video"
-			<< std::endl;
+        "Esc key is pressed by the user. Stopping the video"
+      << std::endl;
       break;
     }
-	}
+  }
   cv::destroyAllWindows();
 }

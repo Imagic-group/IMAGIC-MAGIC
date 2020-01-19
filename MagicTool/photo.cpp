@@ -10,7 +10,7 @@ int main() {
   std::string bgname;
   std::getline(std::cin, bgname);
   cv::Mat bg = cv::imread(bgname);
-	
+  
   std::string resname;
   std::getline(std::cin, resname);  
 

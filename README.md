@@ -2,7 +2,7 @@
 ## PREPARING
 First of all you need to run some commands in terminal (of course you have to be in the main folder of the project):
 ```
-	chmod +x install_openCV
+  chmod +x install_openCV
   ./install_openCV
 ```
 Yeah!
@@ -11,8 +11,8 @@ Now you should build my Project
 ## BUILDING
 Just run the following commands:
 ```
-	chmod +x build
-	./build all
+  chmod +x build
+  ./build all
 ```
 You can also build components independently like this
 ```
@@ -28,15 +28,15 @@ Fine! Now you are about the finish!
 ## RUNNING
 For removing chroma key from the web camera you need to run
 ```
-	./video
+  ./video
   background_path/background.jpg
 ```
 To get the result for picture, run this one
 ```
-	./photo
-	photo_path/some_photo.jpg
-	background_path/some_background.jpg
-	result_path/some_result.jpg
-	-1
+  ./photo
+  photo_path/some_photo.jpg
+  background_path/some_background.jpg
+  result_path/some_result.jpg
+  -1
 ```
 ### That's all. Thanks for download ;)
