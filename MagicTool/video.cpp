@@ -28,6 +28,12 @@ int main() {
 
 		frame = IMAGIC::ChromaKey(-1, frame, bg);	
     cv::imshow(vid1, frame);
+    if (cv::waitKey(5) == 27) {
+      std::cout << 
+				"Esc key is pressed by the user. Stopping the video"
+			<< std::endl;
+      break;
+    }
 	}
   cv::destroyAllWindows();
 }

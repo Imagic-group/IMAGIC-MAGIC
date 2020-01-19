@@ -25,7 +25,7 @@ void IMAGIC::remove_treshold(cv::Mat& im, int rude) {
 	cv::Mat cannyEdges, blurred;
   
   if (rude < 3) {
-    cv::erode(im, im, getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
+    cv::erode(im, im, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
   }
 	
   cv::blur(im, cannyEdges, cv::Size(3, 3));
@@ -102,7 +102,7 @@ void IMAGIC::fit(const cv::Mat& a, cv::Mat& b) {
   double bb = double(b.rows) / b.cols;
   
   double scale;
-  if (aa > bb) {
+  if (aa >= bb) {
     scale = double(a.rows) / b.rows;
   } else {
     scale = double(a.cols) / b.cols;
@@ -134,18 +134,18 @@ cv::Mat IMAGIC::ChromaKey(int quality, cv::Mat im, cv::Mat bg, int sensivity) {/
   cv::Mat for_mask = im.clone();
   //equalize(for_mask);
 	if (quality == 1) {
-    cv::bilateralFilter(im, for_mask, 9, 150, 150); // Size(5, 5), 150
+    cv::bilateralFilter(im, for_mask, 3, 150, 150); // Size(5, 5), 150
   }
   std::vector<cv::Vec3b> keys = get_keys(for_mask);
 	cv::Mat mask = get_mask(for_mask, keys, sensivity);
   
-  cv::Mat mask1 = mask.clone();
 	if (quality == 1) {
+    cv::Mat mask1 = mask.clone();
 		remove_treshold(mask, 5); // 5
 		remove_treshold(mask1, 2); // 2
+	  solve(im, bg, mask, mask1);
 	} else {
-    mask1 = mask;
+  	solve(im, bg, mask, mask);
 	}
-	solve(im, bg, mask, mask1);
 	return im;
 }
