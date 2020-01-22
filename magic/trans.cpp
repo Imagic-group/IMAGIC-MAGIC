@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
       IMAGIC::fit(frame, bg);
     }
 
-    frame = IMAGIC::ChromaKey(-1, frame, bg);
+    frame = IMAGIC::ChromaKey(1, frame, bg);
     
     std::vector<unsigned char> encoded_frame;
     cv::imencode(".jpg", frame, encoded_frame);

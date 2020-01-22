@@ -9,5 +9,5 @@ namespace IMAGIC {
   void solve(cv::Mat& im, cv::Mat& bg, const cv::Mat& mask0, const cv::Mat& mask1);
   void equalize(cv::Mat& im);
   void fit(const cv::Mat& a, cv::Mat& b);
-  cv::Mat ChromaKey(int quality, cv::Mat im, cv::Mat bg, int sensivity = -1);
+  cv::Mat ChromaKey(int compress, cv::Mat im, cv::Mat bg, int sensivity = -1);
 }

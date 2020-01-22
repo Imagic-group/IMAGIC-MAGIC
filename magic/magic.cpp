@@ -126,28 +126,37 @@ void IMAGIC::fit(const cv::Mat& a, cv::Mat& b) {
     }
   }
   swap(b, res);
+  std::cerr << "has fit" << std::endl;
 }
 
-cv::Mat IMAGIC::ChromaKey(int quality, cv::Mat im, cv::Mat bg, int sensivity) {// sensivity = -1 means maximum of (64) and (corner dif)
+cv::Mat IMAGIC::ChromaKey(int compress, cv::Mat im, cv::Mat bg, int sensivity) {// sensivity = -1 means maximum of (64) and (corner dif)
   if (im.size() != bg.size()) {
     fit(im, bg);
   }
 
+  cv::Mat input;
+  if (compress != -1) {
+    input = im.clone();
+    cv::resize(input, im, cv::Size(im.rows / compress, im.cols / compress), cv::INTER_LINEAR);
+  }
+
   cv::Mat for_mask = im.clone();
   //equalize(for_mask);
-  if (quality == 1) {
+  if (compress == -1) {
     cv::bilateralFilter(im, for_mask, 3, 150, 150); // Size(5, 5), 150
   }
   std::vector<cv::Vec3b> keys = get_keys(for_mask);
   cv::Mat mask = get_mask(for_mask, keys, sensivity);
   
-  if (quality == 1) {
+  if (compress == -1) {
     cv::Mat mask1 = mask.clone();
     remove_treshold(mask, 5); // 5
     remove_treshold(mask1, 2); // 2
     solve(im, bg, mask, mask1);
   } else {
-    solve(im, bg, mask, mask);
+    cv::resize(mask, mask, input.size(), cv::INTER_CUBIC);
+    solve(input, bg, mask, mask);
+    im = input;
   }
   return im;
 }

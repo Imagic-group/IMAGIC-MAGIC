@@ -32,13 +32,13 @@ cv::Mat get_frame(std::istream& file) {
 }
 
 int main(int argc, char** argv) {
-  if (argc < 2) {
+  if (argc < 3) {
     std::cerr << "ERROR: unknown name of background\n";
-    std::cerr << "Usage: gphoto2 --capture-movie --stdout | ./video <background>" << std::endl;
+    std::cerr << "Usage: gphoto2 --capture-movie --stdout | ./video 2 <background>" << std::endl;
     return 0;
   }
 
-  cv::Mat bg = cv::imread(argv[1]);
+  cv::Mat bg = cv::imread(argv[2]);
   cv::String title = "ChromaKeyVideo";
   cv::namedWindow(title, cv::WINDOW_AUTOSIZE);
 
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
       IMAGIC::fit(frame, bg);
     }
 
-    frame = IMAGIC::ChromaKey(-1, frame, bg);
+    frame = IMAGIC::ChromaKey(atoi(argv[1]), frame, bg);
     imshow(title, frame);
 
     if (cv::waitKey(5) == 27) {
