@@ -1,3 +1,5 @@
+#include "magic.h"
+
 double IMAGIC::dist(const cv::Vec3b& a, const cv::Vec3b& b) {
   return sqrt(
     (a[0] - b[0]) * (a[0] - b[0]) +

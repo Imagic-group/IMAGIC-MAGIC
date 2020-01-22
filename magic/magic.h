@@ -1,3 +1,6 @@
+#include <opencv2/opencv.hpp>
+#include <vector>
+
 namespace IMAGIC {
   double dist(const cv::Vec3b& a, const cv::Vec3b& b);
   std::vector<cv::Vec3b> get_keys(const cv::Mat& im);

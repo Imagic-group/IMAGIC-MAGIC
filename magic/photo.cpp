@@ -1,4 +1,4 @@
-#include "MagicTool.h"
+#include "magic.h"
 #include <iostream>
 #include <string>
 
