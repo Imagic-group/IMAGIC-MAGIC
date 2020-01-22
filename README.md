@@ -28,8 +28,7 @@ Fine! Now you are about the finish!
 ## RUNNING
 For removing chroma key from the web camera you need to run
 ```
-  ./video
-  background_path/background.jpg
+  gphoto2 --capture-movie --stdout | ./video 1 <background>
 ```
 To get the result for picture, run this one
 ```
@@ -38,5 +37,9 @@ To get the result for picture, run this one
   background_path/some_background.jpg
   result_path/some_result.jpg
   -1
+```
+To translate video into stdout run this line
+```
+  gphoto2 --capture-movie --stdout | ./translate 1 <background>
 ```
 ### That's all. Thanks for download ;)

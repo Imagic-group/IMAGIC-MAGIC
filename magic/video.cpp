@@ -43,13 +43,15 @@ int main(int argc, char** argv) {
   cv::namedWindow(title, cv::WINDOW_AUTOSIZE);
 
   while (true) {
+    std::cerr << ".";
+    std::cerr.flush();
     cv::Mat frame = get_frame(std::cin);
     
     if (frame.size() != bg.size()) {
       IMAGIC::fit(frame, bg);
     }
 
-    frame = IMAGIC::ChromaKey(atoi(argv[1]), frame, bg);
+    //frame = IMAGIC::ChromaKey(atoi(argv[1]), frame, bg);
     imshow(title, frame);
 
     if (cv::waitKey(5) == 27) {

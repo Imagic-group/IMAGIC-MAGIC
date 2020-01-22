@@ -154,7 +154,7 @@ cv::Mat IMAGIC::ChromaKey(int compress, cv::Mat im, cv::Mat bg, int sensivity) {
     remove_treshold(mask1, 2); // 2
     solve(im, bg, mask, mask1);
   } else {
-    cv::resize(mask, mask, input.size(), cv::INTER_CUBIC);
+    cv::resize(mask, mask, input.size(), cv::INTER_LINEAR);
     solve(input, bg, mask, mask);
     im = input;
   }
