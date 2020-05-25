@@ -22,7 +22,7 @@ You can also build components independently like this
   ./build video
   ./build magic video photo trans
 ```
-###(WARNING: In the last line order matters!!!)
+###(WARNING: In the last line order does matter!!!)
 
 Fine! Now you are about the finish!
 ## RUNNING
